@@ -43,6 +43,10 @@ int main()
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
 
+
+
+
+
     if (length && length > 2 && data[0] == '4' && data[1] == '2')
     {
 
@@ -65,6 +69,8 @@ int main()
     	  // reads first element from the current line
     	  string sensor_type;
     	  iss >> sensor_type;
+
+
 
     	  if (sensor_type.compare("L") == 0) {
       	  		meas_package.sensor_type_ = MeasurementPackage::LASER;
@@ -108,6 +114,7 @@ int main()
           //Call ProcessMeasurment(meas_package) for Kalman filter
     	  fusionEKF.ProcessMeasurement(meas_package);    	  
 
+
     	  //Push the current estimated x,y positon from the Kalman filter's state vector
 
     	  VectorXd estimate(4);
@@ -126,6 +133,20 @@ int main()
 
     	  VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
 
+
+
+
+//tester code
+/*
+	  double p_x = 0;
+	  double p_y = 0;
+	  double v1 = 0;
+          double v2 = 0;
+	  VectorXd RMSE = VectorXd(4);
+	  RMSE << 0,0,0,0;
+*/
+//tester code END
+
           json msgJson;
           msgJson["estimate_x"] = p_x;
           msgJson["estimate_y"] = p_y;
@@ -136,6 +157,7 @@ int main()
           auto msg = "42[\"estimate_marker\"," + msgJson.dump() + "]";
           // std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+
 	  
         }
       } else {
@@ -183,90 +205,5 @@ int main()
   }
   h.run();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
