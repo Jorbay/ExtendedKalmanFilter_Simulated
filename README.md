@@ -1,7 +1,25 @@
-# Extended Kalman Filter Project Starter Code
+# Extended Kalman Filter Project 
 Self-Driving Car Engineer Nanodegree Program
 
-In this project you will utilize a kalman filter to estimate the state of a moving object of interest with noisy lidar and radar measurements. Passing the project requires obtaining RMSE values that are lower that the tolerance outlined in the project rubric. 
+   I built a kalman filter to estimate the state of a moving object with noisy simulated LIDAR and RADAR data. The state was found to have an RMSE less than the noise of either the simulated LIDAR or RADAR sensors. This project was done as part of Udacity's Self-Driving Car Engineer Nanodegree Program, specifically, the second semester. This explanation will be broken into the following sections:
+
+1. Motivation
+2. Dependencies for Project
+3. Code breakdown
+4. Results
+
+   If  you have any questions about the code or setup, please feel free to contact me at jorge@jorgeorbay.com. 
+
+##Motivation
+   My initial motivation for building this was to complete Udacity's Self Driving Car Nanodegree, a set of classes on programming self driving cars. Udacity was founded by Sebastian Thrun, the founder of Google's self driving car project, and has been a wonderful resource.
+
+   Learning the mechanics of the Extended Kalman filter itself has been a great reward from this project. A Kalman filter is essentially a tool for tracking an object state by utilizing more than just the last update information. I think this is best utilized with a GPS example. When keeping track of your position in Apple Maps, your phone does not just use the last location registered from GPS satellites, which is why your position is normally shown as constant instead of jumping around within a ~5 m circle (the common noise distribution of GPS). Instead, your phone keeps a running track on your position which it constantly updates (but does not replace) with new GPS information. The mechanics of how Apple Maps updates this information is probably different from this project, but the underlying principles are the same: as the position of an object is updated, each update is associated with a value of expected noise, and the combination of previous state and update results in a new state.
+
+   The "Extended" part of "Extended Kalman filter" refers to the non-linearity of translating RADAR data to positioning in the XY coordinate plane. Because the RADAR data is in polar coordinates, and because the translation from polar coordinates to XY is non-linear, a linear approximation of the RADAR data must be made to maintain the linear translation of Gaussian noise (non-linear translations of Gaussian noise would result in non-Gaussian noise, which would be harder to model). 
+
+##Dependencies
+ 
+   The C++ code and simulator used in this project have necessary dependencies you can find below.
 
 This project involves the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases)
 
@@ -15,30 +33,7 @@ Once the install for uWebSocketIO is complete, the main program can be built and
 4. make
 5. ./ExtendedKF
 
-Note that the programs that need to be written to accomplish the project are src/FusionEKF.cpp, src/FusionEKF.h, kalman_filter.cpp, kalman_filter.h, tools.cpp, and tools.h
-
-The program main.cpp has already been filled out, but feel free to modify it.
-
-Here is the main protcol that main.cpp uses for uWebSocketIO in communicating with the simulator.
-
-
-INPUT: values provided by the simulator to the c++ program
-
-["sensor_measurement"] => the measurement that the simulator observed (either lidar or radar)
-
-
-OUTPUT: values provided by the c++ program to the simulator
-
-["estimate_x"] <= kalman filter estimated position x
-["estimate_y"] <= kalman filter estimated position y
-["rmse_x"]
-["rmse_y"]
-["rmse_vx"]
-["rmse_vy"]
-
----
-
-## Other Important Dependencies
+Other Important Dependencies:
 
 * cmake >= 3.5
   * All OSes: [click here for installation instructions](https://cmake.org/install/)
@@ -51,68 +46,22 @@ OUTPUT: values provided by the c++ program to the simulator
   * Mac: same deal as make - [install Xcode command line tools](https://developer.apple.com/xcode/features/)
   * Windows: recommend using [MinGW](http://www.mingw.org/)
 
-## Basic Build Instructions
+##Mechanics of the Code
 
-1. Clone this repo.
-2. Make a build directory: `mkdir build && cd build`
-3. Compile: `cmake .. && make` 
-   * On windows, you may need to run: `cmake .. -G "Unix Makefiles" && make`
-4. Run it: `./ExtendedKF `
+   The code shown is based off of a framework provided by Udacity. My changes are found in ./src/FusionEKF.cpp, kalman_filter.cpp, and tools.cpp. My custom, added code is marked with a TODO flag before every block. The functions in all these files are called in main.cpp, which is run by calling ./build/ExtendedKF. 
 
-## Editor Settings
+   In FusionEKF.cpp, the values for the process covariance, state covariance, process noise mean, and state noise mean are initialized. These first mean values are chosen from the first measurement, which can be seen in lines 77-100.  All these covariance values are just part of the mechanics of modeling the noise of predicting change in the state as it progresses in time. This can be seen in lines 14-64. Also, the measurement matrix and covariance of sensor noise are initialized in this file for each sensor and called in lines 165-185. The calculation for the process covariance, which is dependent on the time differential between updates, is calculated in lines 133-150. 
 
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
+   In kalman_filter.cpp, the specific calculations for the prediction and update steps of the Kalman filter are implemented. Predict() is the prediction step of every update, and it takes its values from FusionEKF. Update() is the update step for LIDAR measurements. UpdateEKF() is the update step for RADAR measurements, which has a linearized H because of the nonlinear transformation between polar and XY coordinates.
 
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
+   In tools.cpp, only two functions exist. CalculateRMSE() is used to calculate the root mean square error of the predicted state and ground truth. CalculateJacobian() is used to calculate the Jacobian matrix used to linearize the H matrix of RADAR.
 
-## Code Style
+##Results
 
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
+   If using the direct results of the latest LiDAR measurment without any filtering, I could only achieve a RMSE of the X and Y positions of .201 and .185.
 
-## Generating Additional Data
+   If using the direct results of the latest RADAR measurement without any filtering, I could only achieve a RMSE of the X and Y positions of .393 and .519.
 
-This is optional!
+   If using a Kalman filter on the LiDAR and RADAR data together, I achieved a RMSE of the X and Y positions of .097 and .085, more than twice as accurate than the sensor data itself.
 
-If you'd like to generate your own radar and lidar data, see the
-[utilities repo](https://github.com/udacity/CarND-Mercedes-SF-Utilities) for
-Matlab scripts that can generate additional data.
-
-## Project Instructions and Rubric
-
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
-
-More information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project resources page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/382ebfd6-1d55-4487-84a5-b6a5a4ba1e47)
-for instructions and the project rubric.
-
-## Hints!
-
-* You don't have to follow this directory structure, but if you do, your work
-  will span all of the .cpp files here. Keep an eye out for TODOs.
-
-## Call for IDE Profiles Pull Requests
-
-Help your fellow students!
-
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to we ensure
-that students don't feel pressured to use one IDE or another.
-
-However! We'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
-
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
-
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
-
-Regardless of the IDE used, every submitted project must
-still be compilable with cmake and make.
+   Thus, the Kalman filter is a success in increasing state precision relative to just using the latest data points directly.
